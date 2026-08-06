@@ -2,7 +2,7 @@
 
 Descubra o preço de venda e o **lucro real** de um produto depois da taxa do marketplace, do imposto, do frete e da embalagem.
 
-🔗 **[Testar agora](#)** ← _(coloque aqui a URL depois do deploy)_
+🔗 **[Testar agora](https://pedrohferraz.github.io/calculadora-margem/)**
 
 ![Captura de tela da calculadora](docs/captura.png)
 
@@ -58,7 +58,7 @@ markup = preço / C
 Não tem build, não tem dependência, não tem servidor. Basta abrir o arquivo:
 
 ```bash
-git clone https://github.com/SEU-USUARIO/calculadora-margem.git
+git clone https://github.com/PedroHFerraz/calculadora-margem.git
 ```
 
 Depois é só dar dois cliques em `index.html`.
