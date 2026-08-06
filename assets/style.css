@@ -142,7 +142,9 @@ h1 {
   gap: 14px;
 }
 
-.grupo + .titulo-secao {
+.grupo + .titulo-secao,
+#bloco-margem,
+#bloco-preco {
   margin-top: 24px;
 }
 

@@ -4,9 +4,7 @@ Descubra o preço de venda e o **lucro real** de um produto depois da taxa do ma
 
 🔗 **[Testar agora](#)** ← _(coloque aqui a URL depois do deploy)_
 
-<!-- Tire um print da página, salve em docs/captura.png e descomente a linha abaixo:
 ![Captura de tela da calculadora](docs/captura.png)
--->
 
 
 ---
