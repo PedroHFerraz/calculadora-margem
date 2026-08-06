@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Margem — precificação para e-commerce</title>
+<meta name="description" content="Descubra o preço de venda e o lucro real de um produto depois da taxa do marketplace, do imposto e do frete.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topo">
+  <span class="selo"><b>●</b> roda 100% no seu navegador</span>
+  <h1>Quanto sobra de verdade em cada venda?</h1>
+  <p class="subtitulo">
+    Multiplicar o custo por 1,2 não dá 20% de margem — a taxa do marketplace e o
+    imposto incidem sobre o preço final, não sobre o custo. Preencha os campos e
+    veja para onde vai cada real.
+  </p>
+</header>
+
+<main class="layout">
+
+  <section class="card" aria-labelledby="t-custos">
+    <h2 id="t-custos">Seus números</h2>
+
+    <div class="abas" role="tablist">
+      <button class="aba" role="tab" aria-selected="true" data-modo="margem">
+        Quero uma margem de…
+      </button>
+      <button class="aba" role="tab" aria-selected="false" data-modo="preco">
+        Já tenho um preço
+      </button>
+    </div>
+
+    <div class="grupo">
+      <label class="campo">
+        <span class="campo-nome">Custo do produto</span>
+        <span class="campo-caixa"><span>R$</span>
+          <input type="text" inputmode="decimal" id="custoProduto" value="50,00" autocomplete="off">
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Frete que você paga</span>
+        <span class="campo-caixa"><span>R$</span>
+          <input type="text" inputmode="decimal" id="frete" value="18,00" autocomplete="off">
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Embalagem</span>
+        <span class="campo-caixa"><span>R$</span>
+          <input type="text" inputmode="decimal" id="embalagem" value="2,50" autocomplete="off">
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Outros custos por venda</span>
+        <span class="campo-caixa"><span>R$</span>
+          <input type="text" inputmode="decimal" id="outros" value="0,00" autocomplete="off">
+        </span>
+      </label>
+    </div>
+
+    <p class="titulo-secao">Percentuais sobre a venda</p>
+    <div class="grupo">
+      <label class="campo">
+        <span class="campo-nome">Taxa do canal de venda</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="taxaMarketplace" value="16" autocomplete="off">
+          <span>%</span>
+        </span>
+        <span class="atalhos" data-alvo="taxaMarketplace">
+          <button type="button" class="atalho" data-valor="4">4%</button>
+          <button type="button" class="atalho" data-valor="12">12%</button>
+          <button type="button" class="atalho" data-valor="16">16%</button>
+          <button type="button" class="atalho" data-valor="20">20%</button>
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Imposto sobre a venda</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="imposto" value="6" autocomplete="off">
+          <span>%</span>
+        </span>
+        <span class="atalhos" data-alvo="imposto">
+          <button type="button" class="atalho" data-valor="0">0%</button>
+          <button type="button" class="atalho" data-valor="4">4%</button>
+          <button type="button" class="atalho" data-valor="6">6%</button>
+          <button type="button" class="atalho" data-valor="11.2">11,2%</button>
+        </span>
+      </label>
+    </div>
+
+    <div id="bloco-margem">
+      <p class="titulo-secao">Objetivo</p>
+      <label class="campo largo">
+        <span class="campo-nome">Margem de lucro desejada</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="margemDesejada" value="25" autocomplete="off">
+          <span>%</span>
+        </span>
+      </label>
+      <input type="range" id="margemSlider" min="0" max="70" step="1" value="25"
+             aria-label="Margem de lucro desejada">
+    </div>
+
+    <div id="bloco-preco" hidden>
+      <p class="titulo-secao">Objetivo</p>
+      <label class="campo largo">
+        <span class="campo-nome">Preço de venda anunciado</span>
+        <span class="campo-caixa"><span>R$</span>
+          <input type="text" inputmode="decimal" id="precoVenda" value="149,90" autocomplete="off">
+        </span>
+      </label>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="t-resultado">
+    <h2 id="t-resultado">Resultado</h2>
+
+    <div class="destaque">
+      <p class="destaque-rotulo" id="destaqueRotulo">Preço de venda necessário</p>
+      <p class="destaque-valor" id="destaqueValor">R$ 0,00</p>
+      <p class="destaque-nota" id="destaqueNota">—</p>
+    </div>
+
+    <p class="aviso" id="aviso" role="status"></p>
+
+    <dl class="metricas">
+      <div class="metrica">
+        <dt>Lucro por venda</dt>
+        <dd id="mLucro">R$ 0,00</dd>
+      </div>
+      <div class="metrica">
+        <dt>Margem real</dt>
+        <dd id="mMargem">0%</dd>
+      </div>
+      <div class="metrica">
+        <dt>Markup</dt>
+        <dd id="mMarkup">0,00x</dd>
+      </div>
+    </dl>
+
+    <div class="composicao">
+      <p class="titulo-secao">Para onde vai cada real</p>
+      <div class="barra" id="barra" role="img" aria-label="Composição do preço de venda"></div>
+      <ul class="legenda" id="legenda"></ul>
+    </div>
+
+    <div class="volume">
+      <label>
+        Vendendo
+        <input type="text" inputmode="numeric" id="vendasMes" value="100" autocomplete="off">
+        por mês
+      </label>
+      <span class="volume-total" id="lucroMes">R$ 0,00 de lucro</span>
+    </div>
+
+    <button type="button" class="copiar" id="copiar">Copiar resumo</button>
+  </section>
+
+</main>
+
+<footer class="rodape">
+  <p>
+    Feito com HTML, CSS e JavaScript puro — sem framework, sem build, sem servidor.
+    Nenhum dado sai do seu navegador.
+  </p>
+</footer>
+
+<script src="assets/calc.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

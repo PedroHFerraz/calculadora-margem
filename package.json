@@ -1,0 +1,11 @@
+{
+  "name": "calculadora-margem",
+  "version": "1.0.0",
+  "description": "Calculadora de preço e margem de lucro para e-commerce, sem dependências.",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["ecommerce", "precificacao", "margem", "calculadora"],
+  "license": "MIT"
+}
