@@ -61,6 +61,19 @@ body {
   font-weight: 600;
 }
 
+.nav-ferramentas {
+  margin: 10px 0 0;
+  font-size: 13px;
+}
+
+.nav-ferramentas a {
+  color: var(--suave);
+}
+
+.nav-ferramentas a:hover {
+  color: var(--verde);
+}
+
 h1 {
   margin: 14px 0 6px;
   font-size: clamp(26px, 4vw, 36px);

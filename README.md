@@ -6,6 +6,11 @@ Descubra o preço de venda e o **lucro real** de um produto depois da taxa do ma
 
 ![Captura de tela da calculadora](docs/captura.png)
 
+Inclui também uma **[calculadora de frete](frete.html)** para quem dirige: a
+partir da distância, do consumo do caminhão, do diesel, do pedágio e da
+comissão da plataforma, mostra o valor mínimo a cobrar pela viagem — ou,
+dada uma proposta recebida, quanto sobra de lucro de verdade.
+
 
 ---
 
@@ -65,13 +70,19 @@ Depois é só dar dois cliques em `index.html`.
 
 ## Testes
 
-A lógica de cálculo fica isolada em [`assets/calc.js`](assets/calc.js), sem nenhum acesso ao DOM — é o mesmo arquivo que a página carrega e que os testes importam. A suíte usa o runner nativo do Node, sem biblioteca externa:
+A lógica de cálculo fica isolada em [`assets/calc.js`](assets/calc.js) e em
+[`assets/calcFrete.js`](assets/calcFrete.js), sem nenhum acesso ao DOM — são os
+mesmos arquivos que as páginas carregam e que os testes importam. A suíte usa
+o runner nativo do Node, sem biblioteca externa:
 
 ```bash
 npm test
 ```
 
-São 10 casos cobrindo margem alvo, margem impossível, preço mínimo, venda no prejuízo, campos vazios e a demonstração de que `custo × 1,20` não entrega 20% de margem.
+São 21 casos: 10 cobrindo margem alvo, margem impossível, preço mínimo, venda
+no prejuízo, campos vazios e a demonstração de que `custo × 1,20` não entrega
+20% de margem; e 11 cobrindo a calculadora de frete (custo de combustível,
+margem alvo, valor mínimo, lucro por km e proposta abaixo do custo).
 
 ## Decisões técnicas
 
