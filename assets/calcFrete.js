@@ -1,12 +1,18 @@
 /**
- * Núcleo de cálculo do simulador de frete. Funções puras, sem DOM.
+ * Núcleo de cálculo do frete do caminhoneiro. Funções puras, sem DOM.
  *
  * Roda no navegador (expõe window.CalcFrete) e no Node (module.exports),
  * para que os testes usem exatamente o mesmo código da página.
  *
- * As tarifas abaixo são uma simulação didática (não são cotações reais de
- * transportadora): servem para o lojista ter uma ideia de ordem de grandeza
- * e entender como peso, dimensão, distância e modalidade pesam no frete.
+ * Entradas esperadas (objeto `dados`):
+ *   distancia          km  quilômetros da viagem (ida, ou ida e volta se for o caso)
+ *   consumo            km/l consumo médio do caminhão carregado
+ *   precoCombustivel   R$  preço do litro do diesel
+ *   pedagio            R$  pedágio da rota
+ *   alimentacao        R$  alimentação e hospedagem durante a viagem
+ *   outros             R$  qualquer outro custo fixo da viagem (manutenção, ajudante)
+ *   comissao           %   percentual retido pela plataforma/agência de frete
+ *   imposto            %   percentual de imposto sobre o valor do frete
  */
 (function (root, factory) {
   "use strict";
@@ -19,78 +25,103 @@
     return Number.isFinite(v) ? v : 0;
   }
 
-  // Fórmula padrão do mercado (a mesma usada por Correios e transportadoras)
-  // para peso cubado no transporte rodoviário: (C x L x A, em cm) / 6000.
-  var DIVISOR_CUBAGEM = 6000;
+  /** Quanto o diesel custa nessa viagem: (distância / consumo) x preço do litro. */
+  function custoCombustivel(dados) {
+    var consumo = n(dados.consumo);
+    if (consumo <= 0) return 0;
+    return (n(dados.distancia) / consumo) * n(dados.precoCombustivel);
+  }
 
-  var REGIOES = {
-    local: { nome: "Mesma cidade", taxaFixa: 8, taxaPorKg: 1.2, prazoBase: 1 },
-    estado: { nome: "Mesmo estado", taxaFixa: 12, taxaPorKg: 1.8, prazoBase: 3 },
-    perto: { nome: "Sul / Sudeste", taxaFixa: 18, taxaPorKg: 2.5, prazoBase: 5 },
-    longe: {
-      nome: "Norte / Nordeste / Centro-Oeste",
-      taxaFixa: 28,
-      taxaPorKg: 3.8,
-      prazoBase: 9,
-    },
-  };
+  /** Custos em reais que não dependem do valor do frete. */
+  function custosDiretos(dados) {
+    return (
+      custoCombustivel(dados) + n(dados.pedagio) + n(dados.alimentacao) + n(dados.outros)
+    );
+  }
 
-  var MODALIDADES = {
-    economico: { nome: "Econômico", multiplicador: 0.85, ajustePrazo: 3 },
-    padrao: { nome: "Padrão", multiplicador: 1, ajustePrazo: 0 },
-    expresso: { nome: "Expresso", multiplicador: 1.6, ajustePrazo: -2 },
-  };
-
-  // Seguro simulado sobre o valor declarado da mercadoria.
-  var TAXA_SEGURO = 0.003;
-
-  /** Peso "de mentirinha" que o volume ocupa, em kg — quanto maior a caixa, mais pesa. */
-  function pesoCubado(comprimento, largura, altura) {
-    return (n(comprimento) * n(largura) * n(altura)) / DIVISOR_CUBAGEM;
+  /** Fatia do frete que vai embora em percentuais (0 a 1): comissão + imposto. */
+  function fatorPercentual(dados) {
+    return (n(dados.comissao) + n(dados.imposto)) / 100;
   }
 
   /**
-   * Simula o frete de um envio.
-   *
-   * dados: { peso, comprimento, largura, altura, valorDeclarado, regiao, modalidade }
-   * regiao e modalidade são chaves de REGIOES / MODALIDADES.
+   * Dado um valor de frete, quebra o dinheiro em pedaços.
+   * É daqui que sai o lucro real da viagem.
    */
-  function simular(dados) {
-    var regiao = REGIOES[dados.regiao] || REGIOES.estado;
-    var modalidade = MODALIDADES[dados.modalidade] || MODALIDADES.padrao;
-
-    var pesoReal = Math.max(0, n(dados.peso));
-    var cubado = pesoCubado(dados.comprimento, dados.largura, dados.altura);
-    var pesoConsiderado = Math.max(pesoReal, cubado);
-
-    var taxaFixa = regiao.taxaFixa * modalidade.multiplicador;
-    var custoPeso = regiao.taxaPorKg * pesoConsiderado * modalidade.multiplicador;
-    var seguro = Math.max(0, n(dados.valorDeclarado)) * TAXA_SEGURO;
-
-    var total = taxaFixa + custoPeso + seguro;
-    var prazoDias = Math.max(1, regiao.prazoBase + modalidade.ajustePrazo);
+  function analisar(dados, valorFrete) {
+    var valor = n(valorFrete);
+    var diretos = custosDiretos(dados);
+    var comissao = (valor * n(dados.comissao)) / 100;
+    var imposto = (valor * n(dados.imposto)) / 100;
+    var lucro = valor - diretos - comissao - imposto;
+    var distancia = n(dados.distancia);
 
     return {
-      pesoReal: pesoReal,
-      pesoCubado: cubado,
-      pesoConsiderado: pesoConsiderado,
-      usouCubagem: cubado > pesoReal,
-      regiaoChave: dados.regiao,
-      regiaoNome: regiao.nome,
-      modalidadeChave: dados.modalidade,
-      modalidadeNome: modalidade.nome,
-      taxaFixa: taxaFixa,
-      custoPeso: custoPeso,
-      seguro: seguro,
-      total: total,
-      prazoDias: prazoDias,
+      valor: valor,
+      custosDiretos: diretos,
+      comissao: comissao,
+      imposto: imposto,
+      lucro: lucro,
+      // margem = lucro sobre o VALOR DO FRETE (o número que o caminhoneiro usa)
+      margem: valor > 0 ? (lucro / valor) * 100 : 0,
+      // lucro por km: ajuda a comparar viagens de distâncias diferentes
+      lucroPorKm: distancia > 0 ? lucro / distancia : 0,
+      composicao: {
+        combustivel: custoCombustivel(dados),
+        pedagio: n(dados.pedagio),
+        outros: n(dados.alimentacao) + n(dados.outros),
+        comissao: comissao,
+        imposto: imposto,
+        lucro: Math.max(lucro, 0),
+      },
     };
   }
 
+  /**
+   * Menor valor de frete que não dá prejuízo (lucro exatamente zero).
+   * Retorna null quando comissão + imposto comem 100% ou mais do frete.
+   */
+  function valorMinimo(dados) {
+    var f = fatorPercentual(dados);
+    if (f >= 1) return null;
+    return custosDiretos(dados) / (1 - f);
+  }
+
+  /**
+   * Valor de frete necessário para atingir uma margem alvo.
+   *
+   *   valor = custos diretos / (1 - comissão% - imposto% - margem%)
+   *
+   * O erro clássico é somar uma margem fixa em cima do diesel gasto: isso
+   * ignora que a comissão da plataforma e o imposto incidem sobre o valor
+   * do frete, não sobre o custo da viagem.
+   */
+  function valorParaMargem(dados, margemAlvo) {
+    var m = n(margemAlvo) / 100;
+    var f = fatorPercentual(dados);
+    var divisor = 1 - f - m;
+
+    if (divisor <= 0) {
+      return {
+        possivel: false,
+        motivo:
+          "Comissão + imposto + margem desejada somam " +
+          Math.round((f + m) * 100) +
+          "% do frete. Não sobra espaço: baixe a margem ou negocie a comissão.",
+      };
+    }
+
+    var resultado = analisar(dados, custosDiretos(dados) / divisor);
+    resultado.possivel = true;
+    return resultado;
+  }
+
   return {
-    REGIOES: REGIOES,
-    MODALIDADES: MODALIDADES,
-    pesoCubado: pesoCubado,
-    simular: simular,
+    custoCombustivel: custoCombustivel,
+    custosDiretos: custosDiretos,
+    fatorPercentual: fatorPercentual,
+    analisar: analisar,
+    valorMinimo: valorMinimo,
+    valorParaMargem: valorParaMargem,
   };
 });

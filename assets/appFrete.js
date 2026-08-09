@@ -2,22 +2,29 @@
 (function () {
   "use strict";
 
-  var CHAVE = "simulador-frete:v1";
+  var CHAVE = "calculadora-frete:v1";
 
   var CAMPOS = [
-    "peso",
-    "comprimento",
-    "largura",
-    "altura",
-    "valorDeclarado",
-    "regiao",
-    "enviosMes",
+    "distancia",
+    "consumo",
+    "precoCombustivel",
+    "pedagio",
+    "alimentacao",
+    "outros",
+    "comissao",
+    "imposto",
+    "margemDesejada",
+    "valorFrete",
+    "viagensMes",
   ];
 
   var SEGMENTOS = [
-    { chave: "taxaFixa", nome: "Taxa fixa da região", cor: "var(--azul)" },
-    { chave: "custoPeso", nome: "Custo por peso", cor: "var(--roxo)" },
-    { chave: "seguro", nome: "Seguro", cor: "var(--ambar)" },
+    { chave: "combustivel", nome: "Combustível", cor: "var(--azul)" },
+    { chave: "pedagio", nome: "Pedágio", cor: "var(--roxo)" },
+    { chave: "outros", nome: "Alimentação e outros", cor: "var(--cinza)" },
+    { chave: "comissao", nome: "Comissão", cor: "var(--ambar)" },
+    { chave: "imposto", nome: "Imposto", cor: "var(--rosa)" },
+    { chave: "lucro", nome: "Seu lucro", cor: "var(--verde)" },
   ];
 
   var el = {};
@@ -25,7 +32,7 @@
     el[id] = document.getElementById(id);
   });
 
-  var modalidade = "padrao";
+  var modo = "margem";
 
   // ---------- helpers ----------
 
@@ -33,6 +40,13 @@
     style: "currency",
     currency: "BRL",
   });
+
+  function porcento(v) {
+    return v.toLocaleString("pt-BR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }) + "%";
+  }
 
   /** Aceita "1.234,56", "1234,56", "1234.56" e "R$ 19,90". */
   function parseNumero(texto) {
@@ -53,31 +67,45 @@
 
   function lerDados() {
     return {
-      peso: parseNumero(el.peso.value),
-      comprimento: parseNumero(el.comprimento.value),
-      largura: parseNumero(el.largura.value),
-      altura: parseNumero(el.altura.value),
-      valorDeclarado: parseNumero(el.valorDeclarado.value),
-      regiao: el.regiao.value,
-      modalidade: modalidade,
+      distancia: parseNumero(el.distancia.value),
+      consumo: parseNumero(el.consumo.value),
+      precoCombustivel: parseNumero(el.precoCombustivel.value),
+      pedagio: parseNumero(el.pedagio.value),
+      alimentacao: parseNumero(el.alimentacao.value),
+      outros: parseNumero(el.outros.value),
+      comissao: parseNumero(el.comissao.value),
+      imposto: parseNumero(el.imposto.value),
     };
   }
 
   // ---------- render ----------
 
   function render() {
-    var r = CalcFrete.simular(lerDados());
+    var dados = lerDados();
+    var r;
 
-    document.getElementById("destaqueValor").textContent = dinheiro.format(r.total);
+    if (modo === "margem") {
+      r = CalcFrete.valorParaMargem(dados, parseNumero(el.margemDesejada.value));
+      if (!r.possivel) return renderImpossivel(r.motivo);
+      mostrarDestaque("Valor mínimo a cobrar", dinheiro.format(r.valor), false);
+    } else {
+      r = CalcFrete.analisar(dados, parseNumero(el.valorFrete.value));
+      mostrarDestaque(
+        r.lucro >= 0 ? "Lucro nessa proposta" : "Prejuízo nessa proposta",
+        dinheiro.format(r.lucro),
+        r.lucro < 0
+      );
+    }
+
+    var minimo = CalcFrete.valorMinimo(dados);
     document.getElementById("destaqueNota").textContent =
-      r.regiaoNome + " · " + r.modalidadeNome;
+      minimo === null
+        ? "Comissão + imposto consomem todo o valor do frete."
+        : "Abaixo de " + dinheiro.format(minimo) + " a viagem dá prejuízo.";
 
-    document.getElementById("mPeso").textContent =
-      r.pesoConsiderado.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
-      " kg";
-    document.getElementById("mPrazo").textContent =
-      r.prazoDias + (r.prazoDias === 1 ? " dia útil" : " dias úteis");
-    document.getElementById("mSeguro").textContent = dinheiro.format(r.seguro);
+    document.getElementById("mLucro").textContent = dinheiro.format(r.lucro);
+    document.getElementById("mMargem").textContent = porcento(r.margem);
+    document.getElementById("mLucroKm").textContent = dinheiro.format(r.lucroPorKm);
 
     renderComposicao(r);
     renderVolume(r);
@@ -85,9 +113,30 @@
     salvar();
   }
 
+  function mostrarDestaque(rotulo, valor, negativo) {
+    document.getElementById("destaqueRotulo").textContent = rotulo;
+    var alvo = document.getElementById("destaqueValor");
+    alvo.textContent = valor;
+    alvo.classList.toggle("negativo", !!negativo);
+  }
+
+  function renderImpossivel(motivo) {
+    mostrarDestaque("Combinação impossível", "—", true);
+    document.getElementById("destaqueNota").textContent = "Ajuste os números ao lado.";
+    ["mLucro", "mMargem", "mLucroKm"].forEach(function (id) {
+      document.getElementById(id).textContent = "—";
+    });
+    document.getElementById("barra").innerHTML = "";
+    document.getElementById("legenda").innerHTML = "";
+    document.getElementById("lucroMes").textContent = "—";
+    var aviso = document.getElementById("aviso");
+    aviso.textContent = motivo;
+    aviso.classList.add("visivel");
+  }
+
   function renderComposicao(r) {
-    var total = SEGMENTOS.reduce(function (soma, seg) {
-      return soma + r[seg.chave];
+    var total = Object.keys(r.composicao).reduce(function (soma, k) {
+      return soma + r.composicao[k];
     }, 0);
 
     var barra = document.getElementById("barra");
@@ -96,7 +145,7 @@
     legenda.innerHTML = "";
 
     SEGMENTOS.forEach(function (seg) {
-      var valor = r[seg.chave];
+      var valor = r.composicao[seg.chave];
       if (valor <= 0) return;
       var fatia = total > 0 ? (valor / total) * 100 : 0;
 
@@ -116,19 +165,22 @@
   }
 
   function renderVolume(r) {
-    var qtd = Math.max(0, Math.round(parseNumero(el.enviosMes.value)));
-    document.getElementById("totalMes").textContent =
-      dinheiro.format(r.total * qtd) + " no total";
+    var qtd = Math.max(0, Math.round(parseNumero(el.viagensMes.value)));
+    document.getElementById("lucroMes").textContent =
+      dinheiro.format(r.lucro * qtd) + (r.lucro < 0 ? " no mês" : " de lucro no mês");
   }
 
   function renderAviso(r) {
     var aviso = document.getElementById("aviso");
-    if (r.usouCubagem) {
+    if (r.lucro < 0) {
       aviso.textContent =
-        "Essa caixa ocupa mais espaço do que pesa: a transportadora cobra pelo " +
-        "peso cubado (" + r.pesoCubado.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) +
-        " kg), não pelos " + r.pesoReal.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) +
-        " kg reais. Embalagens menores reduzem o frete.";
+        "Nesse valor você perde " + dinheiro.format(Math.abs(r.lucro)) +
+        " na viagem. Uma parada extra ou um pedágio a mais só pioram a conta.";
+      aviso.classList.add("visivel");
+    } else if (r.margem > 0 && r.margem < 5) {
+      aviso.textContent =
+        "Margem de " + porcento(r.margem) +
+        ": uma variação no preço do diesel apaga o lucro dessa viagem.";
       aviso.classList.add("visivel");
     } else {
       aviso.classList.remove("visivel");
@@ -139,7 +191,7 @@
 
   function salvar() {
     try {
-      var dados = { modalidade: modalidade };
+      var dados = { modo: modo };
       CAMPOS.forEach(function (id) {
         dados[id] = el[id].value;
       });
@@ -156,7 +208,9 @@
       CAMPOS.forEach(function (id) {
         if (typeof dados[id] === "string") el[id].value = dados[id];
       });
-      if (CalcFrete.MODALIDADES[dados.modalidade]) trocarModalidade(dados.modalidade);
+      if (dados.modo === "proposta" || dados.modo === "margem") trocarModo(dados.modo);
+      document.getElementById("margemSlider").value =
+        parseNumero(el.margemDesejada.value);
     } catch (e) {
       /* dado corrompido: ignora e usa os valores padrão */
     }
@@ -164,34 +218,60 @@
 
   // ---------- eventos ----------
 
-  function trocarModalidade(nova) {
-    modalidade = nova;
+  function trocarModo(novo) {
+    modo = novo;
     document.querySelectorAll(".aba").forEach(function (aba) {
-      aba.setAttribute("aria-selected", String(aba.dataset.modalidade === nova));
+      aba.setAttribute("aria-selected", String(aba.dataset.modo === novo));
     });
+    document.getElementById("bloco-margem").hidden = novo !== "margem";
+    document.getElementById("bloco-proposta").hidden = novo !== "proposta";
   }
 
   document.querySelectorAll(".aba").forEach(function (aba) {
     aba.addEventListener("click", function () {
-      trocarModalidade(aba.dataset.modalidade);
+      trocarModo(aba.dataset.modo);
       render();
     });
   });
 
+  document.querySelectorAll(".atalho").forEach(function (botao) {
+    botao.addEventListener("click", function () {
+      var alvo = botao.closest(".atalhos").dataset.alvo;
+      el[alvo].value = botao.dataset.valor.replace(".", ",");
+      render();
+    });
+  });
+
+  var slider = document.getElementById("margemSlider");
+  slider.addEventListener("input", function () {
+    el.margemDesejada.value = slider.value;
+    render();
+  });
+
+  el.margemDesejada.addEventListener("input", function () {
+    slider.value = parseNumero(el.margemDesejada.value);
+  });
+
   CAMPOS.forEach(function (id) {
     el[id].addEventListener("input", render);
-    el[id].addEventListener("change", render);
   });
 
   document.getElementById("copiar").addEventListener("click", function (ev) {
-    var r = CalcFrete.simular(lerDados());
+    var dados = lerDados();
+    var r =
+      modo === "margem"
+        ? CalcFrete.valorParaMargem(dados, parseNumero(el.margemDesejada.value))
+        : CalcFrete.analisar(dados, parseNumero(el.valorFrete.value));
+
+    if (r.possivel === false) return;
 
     var texto = [
-      "Frete estimado: " + dinheiro.format(r.total),
-      "Destino: " + r.regiaoNome,
-      "Modalidade: " + r.modalidadeNome,
-      "Peso considerado: " + r.pesoConsiderado.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) + " kg",
-      "Prazo estimado: " + r.prazoDias + (r.prazoDias === 1 ? " dia útil" : " dias úteis"),
+      "Valor do frete: " + dinheiro.format(r.valor),
+      "Custos diretos: " + dinheiro.format(r.custosDiretos),
+      "Comissão: " + dinheiro.format(r.comissao),
+      "Imposto: " + dinheiro.format(r.imposto),
+      "Lucro na viagem: " + dinheiro.format(r.lucro) + " (" + porcento(r.margem) + ")",
+      "Lucro por km: " + dinheiro.format(r.lucroPorKm),
     ].join("\n");
 
     var botao = ev.currentTarget;

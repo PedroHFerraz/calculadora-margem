@@ -6,10 +6,10 @@ Descubra o preço de venda e o **lucro real** de um produto depois da taxa do ma
 
 ![Captura de tela da calculadora](docs/captura.png)
 
-Inclui também um **[simulador de frete](frete.html)**: estima o custo e o prazo
-de um envio a partir do peso, das dimensões da caixa, do destino e da
-modalidade, e avisa quando o "peso cubado" (o espaço que a caixa ocupa) pesa
-mais do que a balança.
+Inclui também uma **[calculadora de frete](frete.html)** para quem dirige: a
+partir da distância, do consumo do caminhão, do diesel, do pedágio e da
+comissão da plataforma, mostra o valor mínimo a cobrar pela viagem — ou,
+dada uma proposta recebida, quanto sobra de lucro de verdade.
 
 
 ---
@@ -79,10 +79,10 @@ o runner nativo do Node, sem biblioteca externa:
 npm test
 ```
 
-São 19 casos: 10 cobrindo margem alvo, margem impossível, preço mínimo, venda
+São 21 casos: 10 cobrindo margem alvo, margem impossível, preço mínimo, venda
 no prejuízo, campos vazios e a demonstração de que `custo × 1,20` não entrega
-20% de margem; e 9 cobrindo o simulador de frete (peso cubado, distância,
-modalidade, seguro e prazo mínimo).
+20% de margem; e 11 cobrindo a calculadora de frete (custo de combustível,
+margem alvo, valor mínimo, lucro por km e proposta abaixo do custo).
 
 ## Decisões técnicas
 

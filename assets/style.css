@@ -147,20 +147,12 @@ h1 {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
 }
 
-.abas-3 {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
 /* ---------- formulário ---------- */
 
 .grupo {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-}
-
-.grupo-3 {
-  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .grupo + .titulo-secao,
@@ -223,22 +215,6 @@ h1 {
   font: inherit;
   font-variant-numeric: tabular-nums;
   outline: none;
-}
-
-.campo-caixa select {
-  width: 100%;
-  padding: 10px 0;
-  border: 0;
-  background: transparent;
-  color: var(--texto);
-  font: inherit;
-  outline: none;
-  cursor: pointer;
-}
-
-.campo-caixa select option {
-  background: var(--card-alto);
-  color: var(--texto);
 }
 
 .atalhos {
@@ -484,14 +460,10 @@ input[type="range"] {
 }
 
 @media (max-width: 480px) {
-  .grupo,
-  .grupo-3 {
+  .grupo {
     grid-template-columns: 1fr;
   }
   .metricas {
-    grid-template-columns: 1fr;
-  }
-  .abas-3 {
     grid-template-columns: 1fr;
   }
 }
