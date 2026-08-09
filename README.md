@@ -6,6 +6,11 @@ Descubra o preço de venda e o **lucro real** de um produto depois da taxa do ma
 
 ![Captura de tela da calculadora](docs/captura.png)
 
+Inclui também um **[simulador de frete](frete.html)**: estima o custo e o prazo
+de um envio a partir do peso, das dimensões da caixa, do destino e da
+modalidade, e avisa quando o "peso cubado" (o espaço que a caixa ocupa) pesa
+mais do que a balança.
+
 
 ---
 
@@ -65,13 +70,19 @@ Depois é só dar dois cliques em `index.html`.
 
 ## Testes
 
-A lógica de cálculo fica isolada em [`assets/calc.js`](assets/calc.js), sem nenhum acesso ao DOM — é o mesmo arquivo que a página carrega e que os testes importam. A suíte usa o runner nativo do Node, sem biblioteca externa:
+A lógica de cálculo fica isolada em [`assets/calc.js`](assets/calc.js) e em
+[`assets/calcFrete.js`](assets/calcFrete.js), sem nenhum acesso ao DOM — são os
+mesmos arquivos que as páginas carregam e que os testes importam. A suíte usa
+o runner nativo do Node, sem biblioteca externa:
 
 ```bash
 npm test
 ```
 
-São 10 casos cobrindo margem alvo, margem impossível, preço mínimo, venda no prejuízo, campos vazios e a demonstração de que `custo × 1,20` não entrega 20% de margem.
+São 19 casos: 10 cobrindo margem alvo, margem impossível, preço mínimo, venda
+no prejuízo, campos vazios e a demonstração de que `custo × 1,20` não entrega
+20% de margem; e 9 cobrindo o simulador de frete (peso cubado, distância,
+modalidade, seguro e prazo mínimo).
 
 ## Decisões técnicas
 

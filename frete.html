@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Frete — estimativa de custo de envio</title>
+<meta name="description" content="Simule o custo e o prazo de um envio a partir do peso, das dimensões, do destino e da modalidade escolhida.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="topo">
+  <span class="selo"><b>●</b> roda 100% no seu navegador</span>
+  <p class="nav-ferramentas"><a href="index.html">← Calculadora de margem</a></p>
+  <h1>Quanto vai custar esse envio?</h1>
+  <p class="subtitulo">
+    O frete não depende só do peso: uma caixa grande e leve pode custar tanto
+    quanto uma pequena e pesada, porque as transportadoras cobram pelo maior
+    entre o peso real e o "peso cubado" (o espaço que a caixa ocupa). Preencha
+    os campos e veja a estimativa.
+  </p>
+</header>
+
+<main class="layout">
+
+  <section class="card" aria-labelledby="t-pacote">
+    <h2 id="t-pacote">Seu pacote</h2>
+
+    <div class="grupo">
+      <label class="campo">
+        <span class="campo-nome">Peso do produto</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="peso" value="2,00" autocomplete="off">
+          <span>kg</span>
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Valor declarado (opcional)</span>
+        <span class="campo-caixa"><span>R$</span>
+          <input type="text" inputmode="decimal" id="valorDeclarado" value="0,00" autocomplete="off">
+        </span>
+      </label>
+    </div>
+
+    <p class="titulo-secao">Dimensões da caixa</p>
+    <div class="grupo grupo-3">
+      <label class="campo">
+        <span class="campo-nome">Comprimento</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="comprimento" value="30" autocomplete="off">
+          <span>cm</span>
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Largura</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="largura" value="20" autocomplete="off">
+          <span>cm</span>
+        </span>
+      </label>
+
+      <label class="campo">
+        <span class="campo-nome">Altura</span>
+        <span class="campo-caixa">
+          <input type="text" inputmode="decimal" id="altura" value="15" autocomplete="off">
+          <span>cm</span>
+        </span>
+      </label>
+    </div>
+
+    <p class="titulo-secao">Destino</p>
+    <label class="campo largo">
+      <span class="campo-nome">Região do destinatário</span>
+      <span class="campo-caixa campo-caixa-select">
+        <select id="regiao">
+          <option value="local">Mesma cidade</option>
+          <option value="estado" selected>Mesmo estado</option>
+          <option value="perto">Sul / Sudeste</option>
+          <option value="longe">Norte / Nordeste / Centro-Oeste</option>
+        </select>
+      </span>
+    </label>
+
+    <p class="titulo-secao">Modalidade</p>
+    <div class="abas abas-3" role="tablist">
+      <button class="aba" role="tab" aria-selected="false" data-modalidade="economico">
+        Econômico
+      </button>
+      <button class="aba" role="tab" aria-selected="true" data-modalidade="padrao">
+        Padrão
+      </button>
+      <button class="aba" role="tab" aria-selected="false" data-modalidade="expresso">
+        Expresso
+      </button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="t-resultado">
+    <h2 id="t-resultado">Resultado</h2>
+
+    <div class="destaque">
+      <p class="destaque-rotulo">Frete estimado</p>
+      <p class="destaque-valor" id="destaqueValor">R$ 0,00</p>
+      <p class="destaque-nota" id="destaqueNota">—</p>
+    </div>
+
+    <p class="aviso" id="aviso" role="status"></p>
+
+    <dl class="metricas">
+      <div class="metrica">
+        <dt>Peso considerado</dt>
+        <dd id="mPeso">0,00 kg</dd>
+      </div>
+      <div class="metrica">
+        <dt>Prazo estimado</dt>
+        <dd id="mPrazo">—</dd>
+      </div>
+      <div class="metrica">
+        <dt>Seguro</dt>
+        <dd id="mSeguro">R$ 0,00</dd>
+      </div>
+    </dl>
+
+    <div class="composicao">
+      <p class="titulo-secao">De que é formado o frete</p>
+      <div class="barra" id="barra" role="img" aria-label="Composição do valor do frete"></div>
+      <ul class="legenda" id="legenda"></ul>
+    </div>
+
+    <div class="volume">
+      <label>
+        Enviando
+        <input type="text" inputmode="numeric" id="enviosMes" value="1" autocomplete="off">
+        pacotes iguais a esse
+      </label>
+      <span class="volume-total" id="totalMes">R$ 0,00 no total</span>
+    </div>
+
+    <button type="button" class="copiar" id="copiar">Copiar resumo</button>
+  </section>
+
+</main>
+
+<footer class="rodape">
+  <p>
+    Valores simulados para fins de estimativa — não são cotações reais de
+    transportadora. HTML, CSS e JavaScript puro. Nenhum dado sai do seu navegador.
+  </p>
+</footer>
+
+<script src="assets/calcFrete.js"></script>
+<script src="assets/appFrete.js"></script>
+</body>
+</html>
