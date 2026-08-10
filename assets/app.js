@@ -16,13 +16,14 @@
     "vendasMes",
   ];
 
+  // Ordem da fita: custos em cinzas graduados, lucro em tinta cheia.
   var SEGMENTOS = [
-    { chave: "produto", nome: "Produto", cor: "var(--cinza)" },
-    { chave: "frete", nome: "Frete", cor: "var(--azul)" },
-    { chave: "extras", nome: "Embalagem e outros", cor: "var(--roxo)" },
-    { chave: "taxa", nome: "Taxa do canal", cor: "var(--ambar)" },
-    { chave: "imposto", nome: "Imposto", cor: "var(--rosa)" },
-    { chave: "lucro", nome: "Seu lucro", cor: "var(--verde)" },
+    { chave: "produto", nome: "Produto", cor: "var(--c1)" },
+    { chave: "frete", nome: "Frete", cor: "var(--c2)" },
+    { chave: "extras", nome: "Embalagem e outros", cor: "var(--c3)" },
+    { chave: "taxa", nome: "Taxa do canal", cor: "var(--c4)" },
+    { chave: "imposto", nome: "Imposto", cor: "var(--c5)" },
+    { chave: "lucro", nome: "Seu lucro", cor: "var(--tinta)" },
   ];
 
   var el = {};
@@ -156,19 +157,22 @@
       pedaco.title = seg.nome + ": " + dinheiro.format(valor);
       barra.appendChild(pedaco);
 
-      var item = document.createElement("li");
-      item.innerHTML =
-        '<i style="background:' + seg.cor + '"></i>' +
-        '<span class="nome">' + seg.nome + " · " + fatia.toFixed(0) + "%</span>" +
-        '<span class="valor">' + dinheiro.format(valor) + "</span>";
-      legenda.appendChild(item);
+      var linha = document.createElement("div");
+      linha.className = "linha" + (seg.chave === "lucro" ? " linha-lucro" : "");
+      linha.innerHTML =
+        '<span class="marca" style="background:' + seg.cor + '"></span>' +
+        "<dt>" + seg.nome + "</dt>" +
+        '<span class="parte">' + fatia.toFixed(0) + "%</span>" +
+        "<dd>" + dinheiro.format(valor) + "</dd>";
+      legenda.appendChild(linha);
     });
   }
 
   function renderVolume(r) {
     var qtd = Math.max(0, Math.round(parseNumero(el.vendasMes.value)));
-    document.getElementById("lucroMes").textContent =
-      dinheiro.format(r.lucro * qtd) + (r.lucro < 0 ? " no mês" : " de lucro no mês");
+    var alvo = document.getElementById("lucroMes");
+    alvo.textContent = dinheiro.format(r.lucro * qtd);
+    alvo.style.color = r.lucro < 0 ? "var(--vermelho)" : "";
   }
 
   function renderAviso(r) {
@@ -221,16 +225,16 @@
 
   function trocarModo(novo) {
     modo = novo;
-    document.querySelectorAll(".aba").forEach(function (aba) {
-      aba.setAttribute("aria-selected", String(aba.dataset.modo === novo));
+    document.querySelectorAll(".alternador-opcao").forEach(function (opcao) {
+      opcao.setAttribute("aria-selected", String(opcao.dataset.modo === novo));
     });
     document.getElementById("bloco-margem").hidden = novo !== "margem";
     document.getElementById("bloco-preco").hidden = novo !== "preco";
   }
 
-  document.querySelectorAll(".aba").forEach(function (aba) {
-    aba.addEventListener("click", function () {
-      trocarModo(aba.dataset.modo);
+  document.querySelectorAll(".alternador-opcao").forEach(function (opcao) {
+    opcao.addEventListener("click", function () {
+      trocarModo(opcao.dataset.modo);
       render();
     });
   });

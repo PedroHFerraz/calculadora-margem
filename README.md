@@ -75,14 +75,15 @@ São 10 casos cobrindo margem alvo, margem impossível, preço mínimo, venda no
 
 ## Decisões técnicas
 
-- **JavaScript puro, sem framework.** A página inteira tem menos de 20 KB. Um React aqui só adicionaria build, dependências e tempo de carregamento para resolver um formulário com nove campos.
+- **JavaScript puro, sem framework.** Marcação, estilo e script somam 29 KB; com a fonte, 60 KB no primeiro carregamento. Um React aqui só adicionaria build, dependências e tempo de carregamento para resolver um formulário com nove campos.
+- **Fonte hospedada no próprio repositório.** O subconjunto latino da Outfit vive em `assets/fonts/`, em vez de vir do Google Fonts. Nenhuma requisição a terceiro, nada de rastreio de quem abre a página, e a tipografia não quebra se o CDN cair.
 - **Cálculo separado da interface.** `calc.js` não conhece o DOM, o que torna cada regra testável isoladamente e permite reaproveitar o módulo em outro lugar (uma API, por exemplo).
 - **Entrada em formato brasileiro.** Os campos aceitam `1.234,56`, `1234,56` e `R$ 19,90` — usar `<input type="number">` obrigaria o lojista a digitar ponto como separador decimal.
 - **Sem back-end.** Preço de custo é informação sensível; mantendo tudo no navegador, não existe dado para vazar.
 
 ## Stack
 
-HTML, CSS e JavaScript — nada além disso.
+HTML, CSS e JavaScript. A única coisa que acompanha é o arquivo da fonte Outfit (SIL Open Font License), servido do próprio repositório.
 
 ## Licença
 
